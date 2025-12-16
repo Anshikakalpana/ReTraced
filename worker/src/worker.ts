@@ -1,15 +1,15 @@
-import redis from './utils/redis';
+import redis from "./utils/redis.js";
 
-const QUEUES = ['queue:high', 'queue:normal', 'queue:low'];
+const QUEUES = ['jobQueue']; 
 
 const processJob = async (job: any) => {
-  console.log(` Processing job ${job.id}`);
-  console.log('Payload:', job.data);
+  console.log(` Processing job ${job.jobId}`);
+  console.log(' Payload:', job.jobData);
 
- 
+
   await new Promise((res) => setTimeout(res, 1000));
 
-  console.log(` Job ${job.id} completed`);
+  console.log(` Job ${job.jobId} completed`);
 };
 
 const startWorker = async () => {
@@ -17,7 +17,6 @@ const startWorker = async () => {
 
   while (true) {
     try {
-
       const result = await redis.brPop(QUEUES, 0);
 
       if (!result) continue;
@@ -26,7 +25,7 @@ const startWorker = async () => {
 
       const job = JSON.parse(element);
 
-      console.log(` Picked job from ${key}`);
+      console.log(` Picked job from queue: ${key}`);
 
       await processJob(job);
 

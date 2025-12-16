@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
 import redis from './utils/redis';
 import dotenv from 'dotenv';
+import router from './routes/job.route';
+
 dotenv.config();
 
 const app = express();
@@ -9,6 +11,9 @@ app.use(express.json());
 app.get('/health', (req: Request, res: Response) => {
   res.send('Hello, World!');
 });
+
+
+app.use('/api', router);
 
 const startServer = async () => {
   try {

@@ -1,22 +1,42 @@
-import redis from '../utils/redis';
-
-export const addJobToQueue = async (
+export  type job = {
   jobId: string,
+
+  createdAt: number,
+  updatedAt?: number,
+
   jobData: object,
-  queueName: string = 'jobQueue'
-) => {
-  try {
-    const newJob = {
-      id: jobId,
-      data: jobData,
-      createdAt: Date.now(),
-      queue: queueName,
-    };
 
-    await redis.rpush(queueName, JSON.stringify(newJob));
+  queueName: string,
 
-  } catch (err) {
-    console.error('Error adding job to queue:', err);
-    throw err;
-  }
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'dead',
+
+  tries: number,
+  maxTries: number,
+
+  lastError?: string,
+  deadReason?: string,
+
+  type?: string,
+  priority?: number,
+  runAt?: number
+};
+
+
+
+
+export type JobError = {
+  message: string;
+  stack?: string;
+  failedAt: number;
+};
+
+
+
+
+export type JobResult = {
+  success: boolean,
+  tries: number,
+  output?: any,
+  error?: JobError,
+  completedAt: number;
 };
