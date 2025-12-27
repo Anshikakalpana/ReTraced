@@ -9,7 +9,7 @@ Job Scheduler Project - TODO
 
 🌐 API Service
 
-✅ Server Bootstrap - Express/Fastify setup with proper initialization
+✅ Server Bootstrap - Express setup with proper initialization
 ✅ Health Check Endpoint - /health for monitoring
 ✅ Job Management Routes - Create and list jobs endpoints
 ✅ DLQ Routes - View and retry dead letter jobs

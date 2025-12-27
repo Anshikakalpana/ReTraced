@@ -1,6 +1,6 @@
 import redis from '../utils/redis';
 import { getQueueKeys } from '../common/queue.constants';
-import { job ,JobResult} from './job.type';
+import { job ,JobResult } from '../common/job.type';
 import { jobFailureType } from '../common/failures/error.type';
 import { JobErrorCode } from '../common/failures/jobErrorCodes';
 
@@ -141,23 +141,6 @@ const getJobStatus= async (jobId: string) => {
 
 
 
-
-
-const dlqOrRetryJob = async (jobData: job, result: JobResult) => {
-  if (!result.error) return;
-
-  const errorCode = result.error.code as JobErrorCode;
- 
-  if (
-    jobFailureType.permanentFailures.has(errorCode) ||
-    jobData.tries >= jobData.maxTries
-  ) {
-    await moveJobToDLQ(jobData, result);
-    return;
-  }
-
-  await retryJob(jobData);
-};
 
 
 
