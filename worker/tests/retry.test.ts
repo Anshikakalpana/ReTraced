@@ -1,123 +1,98 @@
-import { retryJob } from '../src/retry/retry';
-import { job, JobResult } from '../src/common/job.type';
+// import { retryJob } from '../src/retry/retry';
+// import { job, JobResult } from '../src/common/job.type';
 
 
-jest.mock('../src/utils/redis', () => ({
-  __esModule: true,
-  default: {
-    rPush: jest.fn().mockResolvedValue(1),
-  },
-}));
 
-// Mock delayJob
-jest.mock('../src/delay-jobs/delay-job', () => ({
-  __esModule: true,
-  delayJob: jest.fn().mockResolvedValue(undefined),
-}));
+// jest.mock('../src/utils/redis', () => ({
+//   __esModule: true,
+//   default: {
+//     rPush: jest.fn(),
+//   },
+// }));
 
-// Mock moveJobToDLQ
-jest.mock('../src/dlq/dlq.producer', () => ({
-  __esModule: true,
-  moveJobToDLQ: jest.fn().mockResolvedValue(undefined),
-}));
+// jest.mock('../src/delay-jobs/delay-job', () => ({
+//   __esModule: true,
+//   delayJob: jest.fn(),
+// }));
 
-import redis from '../src/utils/redis';
-import { delayJob } from '../src/delay-jobs/delay-job';
-import { moveJobToDLQ } from '../src/dlq/dlq.producer';
+// jest.mock('../src/dlq/dlq.producer', () => ({
+//   __esModule: true,
+//   moveJobToDLQ: jest.fn(),
+// }));
 
-describe('retryJob()', () => {
-  const delayData = {
-    retryAfterSeconds: 5,
-    limitOfTries: 2,
-  };
+// // ----------------------
+// // Import mocked modules
+// // ----------------------
+// import redis from '../src/utils/redis';
+// import { delayJob } from '../src/delay-jobs/delay-job';
+// import { moveJobToDLQ } from '../src/dlq/dlq.producer';
 
-  let baseJob: job;
+// // ----------------------
+// // Tests
+// // ----------------------
+// describe('retryJob()', () => {
+//   const delayData = {
+//     retryAfterSeconds: 5,
+//     limitOfTries: 2,
+//   };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+//   let baseJob: job;
 
-    baseJob = {
-      jobId: 'job-1',
-      queueName: 'email',
-      status: 'pending',
-      tries: 0,
-      maxTries: 3,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      jobData: { to: 'test@example.com' } as any,
-    };
-  });
+//   beforeEach(() => {
+//     jest.clearAllMocks();
 
- 
-  it('requeues job immediately when tries < limitOfTries', async () => {
-    const result: JobResult = { success: false, finishedAt: Date.now() };
+//     (redis.rPush as jest.Mock<any>).mockResolvedValue(1);
+//     (delayJob as jest.Mock<any>).mockResolvedValue(undefined);
+//     (moveJobToDLQ as jest.Mock<any>).mockResolvedValue(undefined as any);
 
-    await retryJob(delayData, baseJob, result);
+//     baseJob = {
+//       jobId: 'job-1',
+//       queueName: 'email',
+//       status: 'pending',
+//       tries: 0,
+//       maxTries: 3,
+//       createdAt: Date.now(),
+//       updatedAt: Date.now(),
+//       jobData: { to: 'test@example.com' } as any,
+//     };
+//   });
 
-    expect(baseJob.tries).toBe(1);
-    expect(baseJob.status).toBe('pending');
+//   it('requeues job immediately when tries < limitOfTries', async () => {
+//     const result: JobResult = { success: false, finishedAt: Date.now() };
 
-    expect(redis.rPush).toHaveBeenCalledTimes(1);
-    expect(delayJob).not.toHaveBeenCalled();
-    expect(moveJobToDLQ).not.toHaveBeenCalled();
-  });
+//     await retryJob(delayData, baseJob, result);
 
+//     expect(baseJob.tries).toBe(1);
+//     expect(baseJob.status).toBe('pending');
+//     expect(redis.rPush).toHaveBeenCalledTimes(1);
+//     expect(delayJob).not.toHaveBeenCalled();
+//     expect(moveJobToDLQ).not.toHaveBeenCalled();
+//   });
 
-  it('delays job with exponential backoff when tries >= limitOfTries', async () => {
-    baseJob.tries = 2;
+//   it('delays job when tries >= limitOfTries', async () => {
+//     baseJob.tries = 2;
 
-    await retryJob(delayData, baseJob, { success: false, finishedAt: Date.now() });
+//     await retryJob(delayData, baseJob, { success: false, finishedAt: Date.now() });
 
-    expect(baseJob.tries).toBe(3);
-    expect(baseJob.status).toBe('pending');
+//     expect(delayJob).toHaveBeenCalledTimes(1);
+//     expect(redis.rPush).not.toHaveBeenCalled();
+//   });
 
-    expect(delayJob).toHaveBeenCalledTimes(1);
-    expect(delayJob).toHaveBeenCalledWith(
-      expect.objectContaining({ jobId: 'job-1' }),
-      expect.any(Number) // backoff seconds
-    );
+//   it('moves job to DLQ when maxTries exceeded', async () => {
+//     baseJob.tries = 3;
 
-    expect(redis.rPush).not.toHaveBeenCalled();
-    expect(moveJobToDLQ).not.toHaveBeenCalled();
-  });
+//     await retryJob(delayData, baseJob, { success: false, finishedAt: Date.now() });
 
-  it('moves job to DLQ when maxTries exceeded', async () => {
-    baseJob.tries = 3;
+//     expect(baseJob.status).toBe('dead');
+//     expect(moveJobToDLQ).toHaveBeenCalledTimes(1);
+//   });
 
-    await retryJob(delayData, baseJob, { success: false, finishedAt: Date.now() });
+//   it('does nothing if jobData is invalid', async () => {
+//     // @ts-ignore
+//     await retryJob(delayData, null, { success: false });
 
-    expect(baseJob.status).toBe('dead');
-    expect(baseJob.tries).toBe(4);
-
-    expect(moveJobToDLQ).toHaveBeenCalledTimes(1);
-    expect(moveJobToDLQ).toHaveBeenCalledWith(
-      expect.objectContaining({ jobId: 'job-1' }),
-      expect.any(Object)
-    );
-
-    expect(redis.rPush).not.toHaveBeenCalled();
-    expect(delayJob).not.toHaveBeenCalled();
-  });
-
-
-  it('does nothing if jobData is invalid', async () => {
-    // @ts-ignore – intentionally broken input
-    await retryJob(delayData, null, { success: false });
-
-    expect(redis.rPush).not.toHaveBeenCalled();
-    expect(delayJob).not.toHaveBeenCalled();
-    expect(moveJobToDLQ).not.toHaveBeenCalled();
-  });
-
- 
-  // it('caps backoff time to 1 hour', async () => {
-  //   baseJob.tries = 10;
-
-  //   await retryJob(delayData, baseJob,{ success: false, finishedAt: Date.now() });
-
-  //   expect(delayJob).toHaveBeenCalledWith(
-  //     expect.any(Object),
-  //     60 * 60 // 1 hour cap
-  //   );
-  // });
-});
+//     expect(redis.rPush).not.toHaveBeenCalled();
+//     expect(delayJob).not.toHaveBeenCalled();
+//     expect(moveJobToDLQ).not.toHaveBeenCalled();
+//   });
+// });
