@@ -18,7 +18,10 @@ if (!jobData || !jobData.queueName) {
 
     // max tries exceeded → move to dlq
     if (jobData.tries > jobData.maxTries) {
+
       jobData.status = "dead";
+
+
       await moveJobToDLQ(jobData, result);
      console.log("job_moved_to_dlq", {
      jobId: jobData.jobId,
@@ -33,7 +36,11 @@ if (!jobData || !jobData.queueName) {
       jobData.tries >= delayData.limitOfTries &&
       jobData.tries <= jobData.maxTries
     ) {
+
       const MAX_BACKOFF_SECONDS = 60 * 60; // 1 hour cap
+
+// Exponential backoff calculation
+//why it needed?- so that the failed jobs do not overload the system by retrying too quickly
 
   const backoffSeconds = Math.min(
   delayData.retryAfterSeconds *
@@ -41,7 +48,7 @@ if (!jobData || !jobData.queueName) {
   MAX_BACKOFF_SECONDS
 );
      
-
+    // delay the job and retry the job after backoffSeconds
       await delayJob(jobData, backoffSeconds);
       console.log(`job retry after ${backoffSeconds} seconds`);
        jobData.status = "pending";
@@ -56,7 +63,7 @@ if (!jobData || !jobData.queueName) {
       return;
     }
 
-    //  Immediate retry
+    //  Immediate retry if within limit
  
     jobData.status = "pending";
 

@@ -4,4 +4,5 @@ export const getQueueKeys = (queueName: string) => ({
   delayed: `${queueName}:delayed`,
   processing: `${queueName}:processing`,
   dlq: `${queueName}:dlq`,
+  processingZset: `${queueName}:processing:zset`,
 });
