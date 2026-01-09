@@ -1,16 +1,31 @@
+// {
+//   "compilerOptions": {
+//       "types": ["jest", "node"],
+//     "target": "ES2022",
+//     "module": "NodeNext",
+//     "moduleResolution": "NodeNext",
+//     "outDir": "./dist",
+//     "rootDir": "./src",
+//     "strict": true,
+//     "esModuleInterop": true,
+//     "forceConsistentCasingInFileNames": true,
+//     "skipLibCheck": true
+//   },
+//   "include": ["src/**/*", "../api/src/utils/queue.constants.ts"]
+// }
 {
   "compilerOptions": {
-      "types": ["jest", "node"],
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node", "jest"]  // ← Add "jest" here
   },
-  "include": ["src/**/*", "../api/src/utils/queue.constants.ts"]
+  "include": ["src/**/*", "tests/**/*"],  // ← Include tests
+  "exclude": ["node_modules"]
 }
-
