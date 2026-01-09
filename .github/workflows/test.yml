@@ -100,9 +100,9 @@ jobs:
     - name: Check build status
       run: |
         if [ "${{ needs.lint-and-test.result }}" == "success" ] && [ "${{ needs.docker-compose-test.result }}" == "success" ]; then
-          echo "✅ All checks passed!"
+          echo "All checks passed!"
           exit 0
         else
-          echo "❌ Some checks failed"
+          echo " Some checks failed"
           exit 1
         fi
