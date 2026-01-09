@@ -1,0 +1,108 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  lint-and-test:
+    name: Lint & Unit Tests
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: |
+          worker/package-lock.json
+          api/package-lock.json
+    
+    - name: Install worker dependencies
+      working-directory: ./worker
+      run: npm ci
+    
+    - name: Run worker tests
+      working-directory: ./worker
+      run: npm test -- --coverage
+    
+    - name: Build worker
+      working-directory: ./worker
+      run: npm run build
+    
+    - name: Install API dependencies
+      working-directory: ./api
+      run: npm ci
+    
+    - name: Build API
+      working-directory: ./api
+      run: npm run build
+
+  docker-compose-test:
+    name: Docker Compose Integration
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Create .env files
+      run: |
+        echo "DATABASE_URL=postgres://postgres:postgres@postgres:5432/app_db" > ./api/.env
+        echo "REDIS_URL=redis://redis:6379" >> ./api/.env
+        echo "DATABASE_URL=postgres://postgres:postgres@postgres:5432/app_db" > ./worker/.env
+        echo "REDIS_URL=redis://redis:6379" >> ./worker/.env
+    
+    - name: Build and start services
+      run: docker-compose up -d --build
+    
+    - name: Wait for services
+      run: |
+        echo "Waiting for services to be healthy..."
+        timeout 120 bash -c 'until docker-compose ps | grep -q "healthy"; do sleep 5; done'
+    
+    - name: Check service health
+      run: |
+        docker-compose ps
+        docker exec postgres_db pg_isready -U postgres || exit 1
+        docker exec redis_cache redis-cli ping || exit 1
+    
+    - name: View API logs
+      if: always()
+      run: docker-compose logs api
+    
+    - name: View Worker logs
+      if: always()
+      run: docker-compose logs worker
+    
+    - name: Cleanup
+      if: always()
+      run: docker-compose down -v
+
+  build-summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [lint-and-test, docker-compose-test]
+    if: always()
+    
+    steps:
+    - name: Check build status
+      run: |
+        if [ "${{ needs.lint-and-test.result }}" == "success" ] && [ "${{ needs.docker-compose-test.result }}" == "success" ]; then
+          echo "✅ All checks passed!"
+          exit 0
+        else
+          echo "❌ Some checks failed"
+          exit 1
+        fi
