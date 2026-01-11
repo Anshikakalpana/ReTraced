@@ -1,33 +1,28 @@
-import { job } from "../common/job.type.js";
-import { getQueueKeys } from "../common/queue.constants.js";
-import jobHandler from "../handlers/email.handler";
+// processDLQJob(dlqJob)
+//   ├─ inspect error
+//   ├─ decide retry / discard
+//   ├─ requeue original job
+
+import { job } from "../common/job.type";
 import redis from "../utils/redis.js";
+export const processsDLQJob = async(job:job):Promise<void>=>{
 
-export const processJobManually = async(deadJob :job, queueName:string):Promise<void>=>{
+if(!job){
+    throw new Error("Invalid job provided for DLQ processing");
+}
 
-        try{
-            if(!deadJob){
-                throw new Error("Invalid jobId provided for manual retry");
-            }
-            const queue = getQueueKeys( queueName);
+const errorInfo=job.lastError;
 
-              const result = await jobHandler(deadJob);
+if(!errorInfo){
+    console.error("No error information found in DLQ job", { jobId: job.jobId });
+    return;
+}
+if(errorInfo.message.includes("permanent")){
+    redis.lrem(job.queueName,0,JSON.stringify(job));
+    console.log("DLQ job discarded permanently", { jobId: job.jobId });
+    return;
+}
+redis.rPush(job.queueName,JSON.stringify(job));
 
-                if(result.success){
-                    deadJob.status="completed";
-                    
-                    await redis.sRem( queue.dlq, deadJob.jobId);
-                    return;
-                }
-                deadJob.status="failed";
-
-                console.log("Job manual retry failed, moving back to DLQ", { job: JSON.stringify(deadJob) });
-
-
-            
-        }catch(err){
-
-        }
-           
 
 }
