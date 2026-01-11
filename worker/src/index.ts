@@ -45,12 +45,12 @@
 import redis from './utils/redis.js';
 import { getQueueKeys } from './common/queue.constants.js';
 import { job } from './common/job.type.js';
-import processJob from './worker.js';
+import processJob from './worker.main.js';
 import { ackJob } from './queue/ack.js';
 import { recoverStuckJobs } from './queue/visibilityTimeout.js';
 
 
-const fetchNextJob = async (queueName: string): Promise<job | null> => {
+export const fetchNextJob = async (queueName: string): Promise<job | null> => {
   const queue = getQueueKeys(queueName);
   const result = await redis.brPopLPush(queue.ready, queue.processing, 0);
   console.log("Fetched job from queue:", result);
