@@ -1,24 +1,24 @@
-import { fetchNextJob } from '../index.js';
+// import { fetchNextJob } from '../index.js';
 
-import { getQueueKeys } from '../common/queue.constants.js';
+// import { getQueueKeys } from '../common/queue.constants.js';
 
-const QUEUES= ['dlq'];
+// const QUEUES= ['dlq'];
 
 
-const deadJob = fetchNextJob('dlq');
+// const deadJob = fetchNextJob('dlq');
 
-const startDlqWorker = async()=>{
-    console.log('DLQ Worker started. Waiting for DLQ jobs...');
+// const startDlqWorker = async()=>{
+//     console.log('DLQ Worker started. Waiting for DLQ jobs...');
 
-    while(deadJob){
-        try{
-            const job = await deadJob;
+//     while(deadJob){
+//         try{
+//             const job = await deadJob;
 
-            if(!job)continue;
-            //process DLQ job here
-          //  processDLQJob(job);
-        }
-    }
+//             if(!job)continue;
+//             //process DLQ job here
+//           //  processDLQJob(job);
+//         }
+//     }
 
-}
+// }
 
