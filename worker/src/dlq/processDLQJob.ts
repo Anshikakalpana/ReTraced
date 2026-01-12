@@ -3,26 +3,73 @@
 //   ├─ decide retry / discard
 //   ├─ requeue original job
 
-import { job } from "../common/job.type";
+
+
+
 import redis from "../utils/redis.js";
-export const processsDLQJob = async(job:job):Promise<void>=>{
+import { getQueueKeys } from "../common/queue.constants.js";
+import { permanentFailures , temporaryFailures } from "../common/failures/error.type.js";
+import { job as Job } from "../common/job.type.js";
 
-if(!job){
-    throw new Error("Invalid job provided for DLQ processing");
-}
 
-const errorInfo=job.lastError;
 
-if(!errorInfo){
-    console.error("No error information found in DLQ job", { jobId: job.jobId });
+export const processDLQJob = async (dlqJob: Job): Promise<void> => {
+  if (!dlqJob) {
+    throw new Error("Invalid DLQ job");
+  }
+
+  if (!dlqJob.lastError ) {
+    console.error("DLQ job has no error metadata", { jobId: dlqJob.jobId });
     return;
-}
-if(errorInfo.message.includes("permanent")){
-    redis.lrem(job.queueName,0,JSON.stringify(job));
-    console.log("DLQ job discarded permanently", { jobId: job.jobId });
+  }
+
+  const queue = getQueueKeys(dlqJob.queueName);
+  const error = typeof dlqJob.lastError === 'string' ? JSON.parse(dlqJob.lastError) : dlqJob.lastError;
+
+  
+
+
+  if (permanentFailures.has(error?.code)) {
+    await redis.lRem(queue.dlq, 0, JSON.stringify(dlqJob));
+
+    console.log("DLQ job permanently discarded", {
+      jobId: dlqJob.jobId,
+      errorCode: error?.code,
+    });
+
     return;
-}
-redis.rPush(job.queueName,JSON.stringify(job));
+  }
+
+  
+  
+
+  if (temporaryFailures.has(error?.code)) {
+    const retryJob: Job = {
+      ...dlqJob,
+      tries: 0,
+      status: "pending",
+      lastError: undefined,
+      updatedAt: Date.now(),
+    };
+
+    await redis.multi()
+      .lRem(queue.dlq, 0, JSON.stringify(dlqJob)) // remove from DLQ
+      .rPush(queue.ready, JSON.stringify(retryJob)) // requeue
+      .exec();
+
+    console.log("DLQ job manually retried", {
+      jobId: retryJob.jobId,
+      queue: retryJob.queueName,
+    });
+
+    return;
+  }
 
 
-}
+  
+
+  console.warn("DLQ job retained (unknown failure type)", {
+    jobId: dlqJob.jobId,
+    error: error?.code,
+  });
+};
