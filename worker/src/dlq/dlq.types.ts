@@ -1,32 +1,60 @@
-export  type dlq = {
-  jobId: string,
+import { JobErrorCode } from "../common/failures/jobErrorCodes";
 
-  createdAt: number,
-  updatedAt?: number,
+export type dlq = {
 
-  jobData: object,
 
-  queueName: string,
+  jobId: string;
+  queueName: string;
 
-  status: 'dead',
-failureType?: 'TEMPORARY' | 'PERMANENT' | 'POISON';
+  jobData: unknown; // immutable snapshot
 
-  maxTries: number,
-  actualTries: number,
-  
-  lastError: JobError,
-  deadReason?: string,
+  status: 'dead';
 
-  type?: string,
-  priority?: number,
-  runAt?: number
+  failureType?: 'TEMPORARY' | 'PERMANENT' | 'POISON';
+
+  maxTries: number;
+  actualTries: number;
+
+  lastError: JobError;
+
+  retries?: DLQRetryAttempt[];
+
+  createdAt: number;
+  updatedAt?: number;
+
+  deadReason?: string;
+
+  priority?: number;
+  runAt?: number;
+
+
 };
 
 
 
 
 export type JobError = {
+  code: JobErrorCode;
   message: string;
   stack?: string;
   failedAt: number;
+};
+
+
+
+
+export type DLQRetryAttempt = {
+
+
+  attemptedAt: number;
+
+  trigger: 'MANUAL' | 'AUTO';
+
+  changesMade: boolean;
+
+  changesInJob?: string;
+
+  result: 'FAILED' | 'SUCCESS';
+
+  error?: JobError;
 };

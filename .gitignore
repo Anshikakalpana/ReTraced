@@ -46,3 +46,5 @@ appendonly.aof
 
 .tmp/
 .cache/
+
+coverage/

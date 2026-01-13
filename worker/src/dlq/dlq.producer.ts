@@ -31,6 +31,7 @@ export const moveJobToDLQ = async (
 
 
       lastError: {
+        code: result.error.code,
         message: result.error.message ?? "Unknown error",
         stack: result.error.stack,
         failedAt: Date.now(),
