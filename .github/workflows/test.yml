@@ -111,7 +111,7 @@ jobs:
           exit 1
         fi
         - name: Upload worker coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./worker/coverage/lcov.info
-        flags: worker
+      # uses: codecov/codecov-action@v4
+      # with:
+      #   files: ./worker/coverage/lcov.info
+      #   flags: worker
