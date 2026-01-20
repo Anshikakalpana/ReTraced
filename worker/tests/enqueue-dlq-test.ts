@@ -1,7 +1,7 @@
 import { Job } from "../src/common/job.type.js";
 import redis from "../src/utils/redis.js";
 
-const JOBS = 1000;
+const JOBS = 1;
 const QUEUE = "queue:email";
 
 (async () => {

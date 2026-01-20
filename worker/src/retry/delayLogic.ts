@@ -15,7 +15,7 @@ export const handleRetryOrDLQ = async (
   job.tries += 1;
   job.updatedAt = Date.now();
 
-  if (job.tries > job.maxTries) {
+  if (job.tries >= job.maxTries) {
     job.status = "dead";
     await moveJobToDLQ(job, result);
     console.log("job_moved_to_dlq", {

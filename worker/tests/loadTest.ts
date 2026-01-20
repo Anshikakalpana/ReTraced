@@ -1,7 +1,8 @@
 import redis from "../src/utils/redis.js";
 
-const JOBS = 10000;
+const JOBS = 500;
 const QUEUE = "queue:email:ready";
+
 
 (async () => {
   console.time("enqueue");
@@ -19,3 +20,4 @@ const QUEUE = "queue:email:ready";
   console.log("Enqueued", JOBS, "jobs");
   process.exit(0);
 })();
+

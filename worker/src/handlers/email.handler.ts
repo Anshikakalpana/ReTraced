@@ -1,94 +1,35 @@
 import { Job, JobResult } from "../common/job.type.js";
 import { JobErrorCode } from "../common/failures/jobErrorCodes.js";
+import redis from "../utils/redis.js";
+import { getQueueKeys } from "../common/queue.constants.js";
+const queueName = 'email';
+const queueKeys = getQueueKeys(queueName);
+const TARGET_JOBS= 1000
 
-const jobHandler = async (job: Job): Promise<JobResult> => {
-
-  const testCase = job.jobData.subject; // using subject to control test
-  if(job.jobData?.emailFrom==="test@a.com"){
-    const result: JobResult = {
-      success: false,
-      error: {
-        code: JobErrorCode.NETWORK_ERROR,
-        message: "Auth failure for test@a.com",
-        failedAt: Date.now()
+export const enqueueJobs = async () => {
+  for (let i = 0; i < TARGET_JOBS; i++) {
+    const job: Job = {
+      jobId: `job-${i}`,
+      createdAt: Date.now(),
+      queueName,
+      status: 'pending',
+      tries: 0,
+      maxTries: 5,
+      jobData: {
+        emailFrom: 'noreply@test.com',
+        emailTo: 'user@test.com',
+        subject: 'Test',
+        body: 'Hello'
       },
-      finishedAt: Date.now()
+      backoffConfig: {
+        baseDelaySeconds: 5,
+        maxDelaySeconds: 60,
+        factor: 2,
+        limitOfTries: 5
+      },
+      backoffStrategy: 'exponential'
     };
-    return result;
-  }
 
-  switch (testCase) {
-
-  
-    case "SUCCESS":
-      return {
-        success: true,
-        output: { sent: true },
-        finishedAt: Date.now()
-      };
-
- 
-    case "NETWORK_ERROR":
-      return {
-        success: false,
-        error: {
-          code: JobErrorCode.NETWORK_ERROR,
-          message: "Simulated network issue",
-          failedAt: Date.now()
-        },
-        finishedAt: Date.now()
-      };
-
-    case "TIMEOUT":
-      return {
-        success: false,
-        error: {
-          code: JobErrorCode.TIMEOUT,
-          message: "Simulated timeout",
-          failedAt: Date.now()
-        },
-        finishedAt: Date.now()
-      };
-
- 
-    case "INVALID_JOB_DATA":
-      return {
-        success: false,
-        error: {
-          code: JobErrorCode.INVALID_JOB_DATA,
-          message: "Invalid payload",
-          failedAt: Date.now()
-        },
-        finishedAt: Date.now()
-      };
-
-    case "AUTH_FAILED":
-      return {
-        success: false,
-        error: {
-          code: JobErrorCode.AUTHENTICATION_FAILED,
-          message: "Auth failure",
-          failedAt: Date.now()
-        },
-        finishedAt: Date.now()
-      };
-
-
-    case "CRASH":
-      throw new Error("Simulated worker crash");
-
-  
-    default:
-      return {
-        success: false,
-        error: {
-          code: JobErrorCode.UNKNOWN_ERROR,
-          message: "Unknown test case",
-          failedAt: Date.now()
-        },
-        finishedAt: Date.now()
-      };
+    await redis.rPush(queueKeys.ready, JSON.stringify(job));
   }
 };
-
-export default jobHandler;

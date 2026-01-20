@@ -4,11 +4,13 @@ import { Job } from './common/job.type.js';
 import processJob from './worker.main.js';
 import { ackJob } from './queue/ack.js';
 import { recoverStuckJobs } from './queue/visibilityTimeout.js';
+import { enqueueJobs } from './handlers/email.handler.js';
+const queueName = 'email';
+const queueKeys = getQueueKeys(queueName);
 
-const TARGET_JOBS = 1000;
-
-let startTime: number | null = null;
+let startTime= Date.now();
 let completed = 0;
+
 
 /**
  * Fetch next job from Redis
@@ -32,8 +34,6 @@ export const fetchNextJob = async (queueName: string): Promise<Job | null> => {
 const startWorker = async () => {
   console.log('Worker started. Waiting for jobs...');
 
-  const queueName = 'email';
-
   // Visibility timeout recovery
   setInterval(async () => {
     try {
@@ -48,7 +48,6 @@ const startWorker = async () => {
       const job = await fetchNextJob(queueName);
       if (!job) continue;
 
-      // Start timing when first job is actually processed
       if (startTime === null) {
         startTime = Date.now();
       }
@@ -58,21 +57,6 @@ const startWorker = async () => {
       if (job.status === 'completed') {
         await ackJob(job);
         completed++;
-
-      //     only for testing throughput
-      //    if (completed === TARGET_JOBS) {
-      //   const seconds = (Date.now() - startTime) / 1000;
-      //   const rate = TARGET_JOBS / seconds;
-
-      //   console.log("================================");
-        
-      //   console.log(`Time: ${seconds.toFixed(2)}s`);
-      //   console.log(`Throughput: ${rate.toFixed(2)} jobs/sec`);
-      //   console.log("================================");
-
-      //   process.exit(0);
-      // }
-       
       }
 
     } catch (err) {
@@ -91,5 +75,3 @@ process.on('SIGINT', async () => {
 });
 
 startWorker();
-
-
