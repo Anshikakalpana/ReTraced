@@ -30,7 +30,6 @@ A **high-performance**, Dockerized **Distributed Job Scheduler** built with
   - [✔ Characteristics](#-characteristics)
 - [🐳 Setup \& Installation](#-setup--installation)
 - [🧪 Testing \& Load Scenarios](#-testing--load-scenarios)
-- [📬 Postman Collection](#-postman-collection)
 - [🧭 Roadmap](#-roadmap)
 - [📄 License](#-license)
 - [🤝 Contributing](#-contributing)
@@ -146,7 +145,10 @@ git clone https://github.com/Anshikakalpana/job-scheduler
 
 
 # Start services
-docker compose up --scale worker=5   ( for multiple workers )
+docker compose up --build
+
+**For testing load jobs**
+docker compose exec worker dist/handlers/email.handler.js
 
 
 ```
@@ -162,12 +164,6 @@ docker compose up --scale worker=5   ( for multiple workers )
 
  cd worker 
 npm run test
-
----
-
-## 📬 Postman Collection
-
-
 
 ---
 
@@ -213,3 +209,4 @@ Give a ⭐️ if this project helped you!
 
 
 **Made with ❤️ by [Anshika Kalpana](https://github.com/Anshikakalpana)**
+
