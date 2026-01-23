@@ -147,7 +147,7 @@ git clone https://github.com/Anshikakalpana/job-scheduler
 # Start services
 docker compose up --build
 
-**For testing load jobs**
+#For testing 
 docker compose exec worker dist/handlers/email.handler.js
 
 
