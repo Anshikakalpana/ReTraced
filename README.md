@@ -1,4 +1,4 @@
-﻿# 🚀 ReTraced — Distributed Job Scheduler (Redis + Node.js)
+﻿# ReTraced — Distributed Job Scheduler (Redis + Node.js)
  
 [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -13,19 +13,19 @@
 **ReTraced** is a Dockerized **distributed job scheduler** built with  
 **Node.js + TypeScript + Redis**, focused on **reliability, retries, DLQ, and observability**.
 
-> ✅ _ReTraced tells the lifecycle story of every job it schedules — from execution to retries to DLQ._
+>  _ReTraced tells the lifecycle story of every job it schedules — from execution to retries to DLQ._
 
 ---
 
-## 🎬 Demo
+##  Demo
 
 ![ReTraced Demo](assets/ReTraced.gif)
 
 ---
 
-## ✨ Highlights (Strengths)
+##  Highlights (Strengths)
 
-✅ What makes ReTraced strong:
+ What makes ReTraced strong:
 
 - **Redis-backed distributed queueing**
 - **At-least-once delivery** using `BRPOPLPUSH`
@@ -37,6 +37,7 @@
 - **Dockerized setup** (API + Worker + Redis)
 - **TypeScript type-safety** end-to-end
 - **Unit + Integration tests** with Jest
+- **Rate Limiting using Token Bucket** (lua for atomic operations)
 
 ---
 
@@ -52,7 +53,7 @@
 
 ---
 
-## 🧩 System Overview
+## System Overview
 
 ### Core Components
 
@@ -75,7 +76,7 @@
 
 ---
 
-## 🔁 Retry Strategy (Three-Tier)
+##  Retry Strategy (Three-Tier)
 
 ReTraced supports a **three-tier retry model**:
 
@@ -87,7 +88,7 @@ ReTraced supports a **three-tier retry model**:
 
 
 
-## 🐳 Quick Start (Run Locally)
+##  Quick Start (Run Locally)
 
 ###  Clone
 
@@ -99,7 +100,7 @@ docker compose up --build      ( for one worker )
 docker compose up --scale worker=5    ( for multiple workers )
 
 
-📩 Enqueue Test Jobs
+ Enqueue Test Jobs
 
 docker compose exec worker node dist/handlers/email.handler.js
 
@@ -115,7 +116,6 @@ GET job:job-0
 - Multiple worker replicas (horizontal scaling)
 - Job prioritization
 - Cron / scheduled jobs
-- Rate limiting per job type
 - Job cancellation + pause/resume queues
 - Prometheus / Grafana metrics
 - Distributed tracing (OpenTelemetry)
@@ -123,13 +123,13 @@ GET job:job-0
 - PostgreSQL persistence for long-term storage
 
 
-## 📄 License
+##  License
 
 MIT License — free for personal & commercial use.
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions, issues, and feature requests are welcome!  
 Feel free to check the [issues page](https://github.com/Anshikakalpana/job-scheduler/issues).
@@ -145,11 +145,12 @@ Feel free to check the [issues page](https://github.com/Anshikakalpana/job-sched
 
 ---
 
-## ⭐ Show Your Support
+##  Show Your Support
 
 Give a ⭐️ if this project helped you!
 
 ---
+
 
 
 
