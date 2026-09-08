@@ -7,7 +7,6 @@
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=flat-square)](https://github.com/Anshikakalpana/job-scheduler/graphs/commit-activity)
 
 **ReTraced** is a Dockerized **Distributed Job Queue with retry orchestration and observability** built with  
@@ -129,21 +128,6 @@ MIT License — free for personal & commercial use.
 
 ---
 
-##  Contributing
-
-Contributions, issues, and feature requests are welcome!  
-Feel free to check the [issues page](https://github.com/Anshikakalpana/job-scheduler/issues).
-
-**Guidelines** 
-
-- Fork the repository
-- Create your feature branch (git checkout -b feature/amazing-feature)
-- Commit your changes (git commit -m 'Add some amazing feature')
-- Push to the branch (git push origin feature/amazing-feature)
-- Open a Pull Request
-
-
----
 
 ##  Show Your Support
 
